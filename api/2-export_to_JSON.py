@@ -1,29 +1,20 @@
 #!/usr/bin/python3
-"""Fetch employee TODO list data and export to JSON format."""
-
+"""Export a given employee's TODO list data to JSON format."""
 import json
 import requests
 import sys
 
+
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit(1)
+    employee_id = sys.argv[1]
+    base_url = "https://jsonplaceholder.typicode.com/"
 
-    user_id = sys.argv[1]
-    base_url = "https://jsonplaceholder.typicode.com"
+    user = requests.get(base_url + "users/{}".format(employee_id)).json()
+    todos = requests.get(
+        base_url + "todos", params={"userId": employee_id}).json()
 
-    # Fetch user username
-    user_res = requests.get("{}/users/{}".format(base_url, user_id))
-    username = user_res.json().get("username")
-
-    # Fetch user tasks
-    todos_res = requests.get(
-        "{}/todos".format(base_url), params={"userId": user_id}
-    )
-    todos = todos_res.json()
-
-    # Format JSON structure
-    user_tasks = [
+    username = user.get("username")
+    tasks = [
         {
             "task": task.get("title"),
             "completed": task.get("completed"),
@@ -32,9 +23,7 @@ if __name__ == "__main__":
         for task in todos
     ]
 
-    json_data = {user_id: user_tasks}
+    data = {employee_id: tasks}
 
-    # Save to file
-    filename = "{}.json".format(user_id)
-    with open(filename, mode="w") as json_file:
-        json.dump(json_data, json_file)
+    with open("{}.json".format(employee_id), "w") as json_file:
+        json.dump(data, json_file)
